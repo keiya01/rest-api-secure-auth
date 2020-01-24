@@ -13,12 +13,12 @@ func get(w http.ResponseWriter, r *http.Request) {
 }
 
 func post(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(`{"message": "Received POST method"}`))
 }
 
 func put(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusAccepted)
 	w.Write([]byte(`{"message": "Received PUT method"}`))
 }
 
@@ -28,6 +28,7 @@ func delete(w http.ResponseWriter, r *http.Request) {
 }
 
 func notFound(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotFound)
 	w.Write([]byte(`{"message": "Received method not found"}`))
 }
 
