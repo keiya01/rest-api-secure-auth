@@ -5,31 +5,30 @@ import (
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
+	"strconv"
 )
 
-func get(w http.ResponseWriter, r *http.Request) {
+func userProfile(w http.ResponseWriter, r *http.Request) {
+	pathParams := mux.Vars(r)
+
+	var userID int
+	var err error
+
+	if val, ok := pathParams["userID"]; ok {
+		userID, err = strconv.Atoi(val)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(`{"message": "user id param need to be number"}`))
+		}
+	}
+
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(`{"message": "Received GET method"}`))
-}
-
-func post(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(`{"message": "Received POST method"}`))
-}
-
-func put(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusAccepted)
-	w.Write([]byte(`{"message": "Received PUT method"}`))
-}
-
-func delete(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(`{"message": "Received DELETE method"}`))
-}
-
-func notFound(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotFound)
-	w.Write([]byte(`{"message": "Received method not found"}`))
+	w.Write([]byte(fmt.Sprintf(`{
+		"user": {
+			"id": %d,
+			"name": "user%d"
+		}
+	}`, userID, userID)))
 }
 
 func json(next http.Handler) http.Handler {
@@ -43,11 +42,7 @@ func main() {
 	r := mux.NewRouter()
 	r.Use(json)
 	api := r.PathPrefix("/api/v1").Subrouter()
-	api.HandleFunc("/", get).Methods(http.MethodGet)
-	api.HandleFunc("/", post).Methods(http.MethodPost)
-	api.HandleFunc("/", put).Methods(http.MethodPut)
-	api.HandleFunc("/", delete).Methods(http.MethodDelete)
-	api.HandleFunc("/", notFound)
+	api.HandleFunc("/users/{userID}", userProfile).Methods(http.MethodGet)
 	fmt.Println("Listening on 8080")
 	log.Fatal(http.ListenAndServe(":8080", r))
 }
