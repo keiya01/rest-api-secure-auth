@@ -33,8 +33,8 @@ type loginResponse struct {
 func login(w http.ResponseWriter, r *http.Request) {
 	var err error
 
-	sessionValue, _ := sessionStore.Get(r, SESSION_STORE_NAME)
-	if userID, ok := sessionValue.Values["userID"].(string); ok {
+	session, _ := sessionStore.Get(r, SESSION_STORE_NAME)
+	if userID, ok := session.Values["userID"].(string); ok {
 			if user, ok := db.Get(userID).(User); ok {
 				userJSON, _ := json.Marshal(loginResponse {
 					Message: "Auto login success",
@@ -74,7 +74,7 @@ func authCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sessionValue, _ := sessionStore.Get(r, SESSION_STORE_NAME)
+	session, _ := sessionStore.Get(r, SESSION_STORE_NAME)
 
 	user := User {
 		ID: gothUser.UserID,
@@ -82,23 +82,19 @@ func authCallback(w http.ResponseWriter, r *http.Request) {
 		Description: gothUser.Description,
 	}
 
-	sessionValue.Values["userID"] = user.ID
-	sessionStore.Save(r, w, sessionValue)
+	session.Values["userID"] = user.ID
+	session.Options = sessions.CookieOptions
+	sessionStore.Save(r, w, session)
 
 	db.Insert(user.ID, user)
 
-	res := loginResponse{
-		Message: "Login Success!",
-		User: user,
-	}
-
-	resJSON, err := json.Marshal(res)
-	if err != nil {
-		w.Write([]byte(`{"message": "Login failure ..."}`))
-		return
-	}
-
-	w.Write(resJSON)
+	vars := mux.Vars(r)
+	http.Redirect(
+		w, 
+		r, 
+		fmt.Sprintf("/api/v1/login/%s", vars["provider"]), 
+		http.StatusTemporaryRedirect,
+	)
 }
 
 func userProfile(w http.ResponseWriter, r *http.Request) {
