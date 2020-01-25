@@ -1,6 +1,8 @@
 package main
 
 import (
+	"github.com/markbates/goth"
+	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
@@ -11,15 +13,32 @@ import (
 	"strconv"
 )
 
-func login(w http.ResponseWriter, r *http.Request) {
-	if gothUser, err := gothic.CompleteUserAuth(w, r); err == nil {
-		w.Write([]byte(fmt.Sprintf(`{
-			"user": %v
-		}`, gothUser)))
-	} else {
-		gothic.BeginAuthHandler(w, r)
-	}
+type loginResponse struct {
+	Message string `json:"message"`
+	User goth.User `json:"user"`
 }
+
+func login(w http.ResponseWriter, r *http.Request) {
+	var err error
+
+	gothUser, err := gothic.CompleteUserAuth(w, r)
+	if err != nil {
+		gothic.BeginAuthHandler(w, r)
+		return
+	}
+
+	user, err := json.Marshal(loginResponse {
+		Message: "Login success",
+		User: gothUser,
+	})
+	if err != nil {
+		w.Write([]byte(`{message: "Could not be received response data"}`))
+		return
+	}
+
+	w.Write(user)
+}
+
 
 func authCallback(w http.ResponseWriter, r *http.Request) {
 	user, err := gothic.CompleteUserAuth(w, r)
@@ -27,10 +46,19 @@ func authCallback(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(`{"message": "Login failure ..."}`))
 		return
 	}
-	w.Write([]byte(fmt.Sprintf(`{
-		"message": "Login Success!",
-		"user": %v
-	}`, user)))
+
+	res := loginResponse{
+		Message: "Login Success!",
+		User: user,
+	}
+
+	resJSON, err := json.Marshal(res)
+	if err != nil {
+		w.Write([]byte(`{"message": "Login failure ..."}`))
+		return
+	}
+
+	w.Write(resJSON)
 }
 
 func userProfile(w http.ResponseWriter, r *http.Request) {
@@ -56,7 +84,7 @@ func userProfile(w http.ResponseWriter, r *http.Request) {
 	}`, userID, userID)))
 }
 
-func json(next http.Handler) http.Handler {
+func setHeader(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		next.ServeHTTP(w, r)
@@ -64,12 +92,16 @@ func json(next http.Handler) http.Handler {
 }
 
 func main() {
-	godotenv.Load()
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	auth.SetProvider()
 
 	r := mux.NewRouter()
 
-	r.Use(json)
+	r.Use(setHeader)
 
 	api := r.PathPrefix("/api/v1").Subrouter()
 	api.HandleFunc("/users/{userID}", userProfile).Methods(http.MethodGet)
