@@ -1,7 +1,8 @@
 package main
 
 import (
-	"github.com/markbates/goth"
+	"github.com/keiya01/rest-api-sample/database"
+	"github.com/keiya01/rest-api-sample/sessions"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
@@ -10,16 +11,39 @@ import (
 	"github.com/markbates/goth/gothic"
 	"log"
 	"net/http"
-	"strconv"
 )
+
+var (
+	sessionStore = sessions.NewStore()
+	SESSION_STORE_NAME = "cookie-store"
+	db = database.NewDB()
+)
+
+type User struct {
+	ID string `json:"id"`
+	Name string `json:"name"`
+	Description string `json:"description"`
+}
 
 type loginResponse struct {
 	Message string `json:"message"`
-	User goth.User `json:"user"`
+	User User `json:"user"`
 }
 
 func login(w http.ResponseWriter, r *http.Request) {
 	var err error
+
+	sessionValue, _ := sessionStore.Get(r, SESSION_STORE_NAME)
+	if userID, ok := sessionValue.Values["userID"].(string); ok {
+			if user, ok := db.Get(userID).(User); ok {
+				userJSON, _ := json.Marshal(loginResponse {
+					Message: "Auto login success",
+					User: user,
+				})
+				w.Write(userJSON)
+				return
+			}
+	}
 
 	gothUser, err := gothic.CompleteUserAuth(w, r)
 	if err != nil {
@@ -27,25 +51,41 @@ func login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := json.Marshal(loginResponse {
+	userJSON, err := json.Marshal(loginResponse {
 		Message: "Login success",
-		User: gothUser,
+		User: User {
+			ID: gothUser.UserID,
+			Name: gothUser.Name,
+			Description: gothUser.Description,
+		},
 	})
 	if err != nil {
 		w.Write([]byte(`{message: "Could not be received response data"}`))
 		return
 	}
 
-	w.Write(user)
+	w.Write(userJSON)
 }
 
-
 func authCallback(w http.ResponseWriter, r *http.Request) {
-	user, err := gothic.CompleteUserAuth(w, r)
+	gothUser, err := gothic.CompleteUserAuth(w, r)
 	if err != nil {
 		w.Write([]byte(`{"message": "Login failure ..."}`))
 		return
 	}
+
+	sessionValue, _ := sessionStore.Get(r, SESSION_STORE_NAME)
+
+	user := User {
+		ID: gothUser.UserID,
+		Name: gothUser.Name,
+		Description: gothUser.Description,
+	}
+
+	sessionValue.Values["userID"] = user.ID
+	sessionStore.Save(r, w, sessionValue)
+
+	db.Insert(user.ID, user)
 
 	res := loginResponse{
 		Message: "Login Success!",
@@ -64,24 +104,23 @@ func authCallback(w http.ResponseWriter, r *http.Request) {
 func userProfile(w http.ResponseWriter, r *http.Request) {
 	pathParams := mux.Vars(r)
 
-	var userID int
-	var err error
+	userID, ok := pathParams["userID"];
+	if !ok {
+		w.Write([]byte(`{"message": "User not found"}`))
+		return
+	}
 
-	if val, ok := pathParams["userID"]; ok {
-		userID, err = strconv.Atoi(val)
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(`{"message": "user id param need to be number"}`))
-		}
+	user := db.Get(userID)
+	if user == nil {
+		w.Write([]byte(`{"message": "User not found"}`))
+		return
 	}
 
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(fmt.Sprintf(`{
-		"user": {
-			"id": %d,
-			"name": "user%d"
-		}
-	}`, userID, userID)))
+		"message": "User found"
+		"user": %v
+	}`, user)))
 }
 
 func setHeader(next http.Handler) http.Handler {
