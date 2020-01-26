@@ -14,10 +14,23 @@ import (
 )
 
 var (
-	sessionStore = sessions.NewStore()
 	SESSION_STORE_NAME = "cookie-store"
 	db = database.NewDB()
 )
+
+func init() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
+	auth.SetProvider()
+
+	sessionStore := sessions.NewStore()
+	sessions.SetSessionStore(sessionStore)
+
+	gothic.Store = sessions.NewStore()
+}
 
 type User struct {
 	ID string `json:"id"`
@@ -33,7 +46,7 @@ type loginResponse struct {
 func login(w http.ResponseWriter, r *http.Request) {
 	var err error
 
-	session, _ := sessionStore.Get(r, SESSION_STORE_NAME)
+	session, _ := sessions.Get(r, SESSION_STORE_NAME)
 	if userID, ok := session.Values["userID"].(string); ok {
 			if user, ok := db.Get(userID).(User); ok {
 				userJSON, _ := json.Marshal(loginResponse {
@@ -74,7 +87,7 @@ func authCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, _ := sessionStore.Get(r, SESSION_STORE_NAME)
+	session, _ := sessions.Get(r, SESSION_STORE_NAME)
 
 	user := User {
 		ID: gothUser.UserID,
@@ -84,7 +97,7 @@ func authCallback(w http.ResponseWriter, r *http.Request) {
 
 	session.Values["userID"] = user.ID
 	session.Options = sessions.CookieOptions
-	sessionStore.Save(r, w, session)
+	sessions.Save(r, w, session)
 
 	db.Insert(user.ID, user)
 
@@ -127,13 +140,6 @@ func setHeader(next http.Handler) http.Handler {
 }
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
-
-	auth.SetProvider()
-
 	r := mux.NewRouter()
 
 	r.Use(setHeader)
