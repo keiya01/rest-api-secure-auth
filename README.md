@@ -1,4 +1,4 @@
-# Rest API Auth Secure
+# Rest API Secure Auth
 
 # About
 - golangでセキュアな認証システムを実装した
