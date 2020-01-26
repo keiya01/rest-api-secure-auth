@@ -3,6 +3,7 @@ module github.com/keiya01/rest-api-secure-auth
 go 1.12
 
 require (
+	github.com/gorilla/csrf v1.6.2
 	github.com/gorilla/mux v1.7.3
 	github.com/gorilla/securecookie v1.1.1
 	github.com/gorilla/sessions v1.1.1
