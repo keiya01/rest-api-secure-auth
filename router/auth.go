@@ -2,7 +2,7 @@ package router
 
 import (
 	"net/http"
-	"github.com/keiya01/rest-api-sample/handler"
+	"github.com/keiya01/rest-api-secure-auth/handler"
 )
 
 func (r *Router) auth() {

@@ -1,12 +1,12 @@
 package main
 
 import (
-	"github.com/keiya01/rest-api-sample/database"
-	"github.com/keiya01/rest-api-sample/sessions"
-	"github.com/keiya01/rest-api-sample/router"
+	"github.com/keiya01/rest-api-secure-auth/database"
+	"github.com/keiya01/rest-api-secure-auth/sessions"
+	"github.com/keiya01/rest-api-secure-auth/router"
 	"fmt"
 	"github.com/joho/godotenv"
-	"github.com/keiya01/rest-api-sample/auth"
+	"github.com/keiya01/rest-api-secure-auth/auth"
 	"github.com/markbates/goth/gothic"
 	"log"
 	"net/http"

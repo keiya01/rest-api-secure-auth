@@ -1,7 +1,7 @@
 package router
 
 import (
-	"github.com/keiya01/rest-api-sample/handler"
+	"github.com/keiya01/rest-api-secure-auth/handler"
 	"net/http"
 )
 

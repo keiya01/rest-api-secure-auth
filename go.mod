@@ -1,4 +1,4 @@
-module github.com/keiya01/rest-api-sample
+module github.com/keiya01/rest-api-secure-auth
 
 go 1.12
 

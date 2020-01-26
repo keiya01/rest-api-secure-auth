@@ -2,7 +2,7 @@ package handler
 
 import (
 	"fmt"
-	"github.com/keiya01/rest-api-sample/database"
+	"github.com/keiya01/rest-api-secure-auth/database"
 	"net/http"
 	"github.com/gorilla/mux"
 )
