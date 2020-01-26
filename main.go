@@ -13,11 +13,6 @@ import (
 	"net/http"
 )
 
-var (
-	SESSION_STORE_NAME = "cookie-store"
-	db = database.NewDB()
-)
-
 func init() {
 	err := godotenv.Load()
 	if err != nil {
@@ -30,6 +25,8 @@ func init() {
 	sessions.SetSessionStore(sessionStore)
 
 	gothic.Store = sessions.NewStore()
+
+	database.SetDB(database.NewDB())
 }
 
 type User struct {
@@ -46,9 +43,9 @@ type loginResponse struct {
 func login(w http.ResponseWriter, r *http.Request) {
 	var err error
 
-	session, _ := sessions.Get(r, SESSION_STORE_NAME)
+	session, _ := sessions.Get(r, sessions.SESSION_STORE_NAME)
 	if userID, ok := session.Values["userID"].(string); ok {
-			if user, ok := db.Get(userID).(User); ok {
+			if user, ok := database.Get(userID).(User); ok {
 				userJSON, _ := json.Marshal(loginResponse {
 					Message: "Auto login success",
 					User: user,
@@ -87,7 +84,7 @@ func authCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, _ := sessions.Get(r, SESSION_STORE_NAME)
+	session, _ := sessions.Get(r, sessions.SESSION_STORE_NAME)
 
 	user := User {
 		ID: gothUser.UserID,
@@ -99,7 +96,7 @@ func authCallback(w http.ResponseWriter, r *http.Request) {
 	session.Options = sessions.CookieOptions
 	sessions.Save(r, w, session)
 
-	db.Insert(user.ID, user)
+	database.Insert(user.ID, user)
 
 	vars := mux.Vars(r)
 	http.Redirect(
@@ -119,7 +116,7 @@ func userProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := db.Get(userID)
+	user := database.Get(userID)
 	if user == nil {
 		w.Write([]byte(`{"message": "User not found"}`))
 		return
