@@ -6,6 +6,8 @@ import (
 	"github.com/gorilla/sessions"
 )
 
+var SESSION_STORE_NAME = "cookie-store"
+
 var store = &sessions.CookieStore{}
 
 func NewStore() *sessions.CookieStore {
