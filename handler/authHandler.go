@@ -62,6 +62,7 @@ func (a *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 				Message: "Auto login success",
 				User:    user,
 			})
+			w.Header().Set("Content-Type", "application/json")
 			w.Write(userJSON)
 			return
 		}
@@ -81,6 +82,9 @@ func (a *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 			Description: gothUser.Description,
 		},
 	})
+
+	w.Header().Set("Content-Type", "application/json")
+
 	if err != nil {
 		w.Write([]byte(`{message: "Could not be received response data"}`))
 		return
