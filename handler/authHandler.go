@@ -3,7 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/mux"
+	"github.com/keiya01/rest-api-secure-auth/auth"
 	"github.com/keiya01/rest-api-secure-auth/database"
 	"github.com/keiya01/rest-api-secure-auth/model"
 	"github.com/keiya01/rest-api-secure-auth/sessions"
@@ -43,11 +43,11 @@ func (a *AuthHandler) AuthCallback(w http.ResponseWriter, r *http.Request) {
 
 	database.Insert(user.ID, user)
 
-	vars := mux.Vars(r)
 	http.Redirect(
 		w,
 		r,
-		fmt.Sprintf("/api/v1/login/%s", vars["provider"]),
+		// TODO: FrontEndのpathに変更する
+		fmt.Sprintf("/api/v1/users/%s", user.ID),
 		http.StatusTemporaryRedirect,
 	)
 }
@@ -55,32 +55,32 @@ func (a *AuthHandler) AuthCallback(w http.ResponseWriter, r *http.Request) {
 func (a *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var err error
 
-	session, _ := sessions.Get(r, sessions.SESSION_STORE_NAME)
-	if userID, ok := session.Values["userID"].(string); ok {
-		if user, ok := database.Get(userID).(model.User); ok {
-			userJSON, _ := json.Marshal(loginResponse{
-				Message: "Auto login success",
-				User:    user,
-			})
-			w.Header().Set("Content-Type", "application/json")
-			w.Write(userJSON)
+	// Check if the cookie has useID
+	if currentUser, ok := auth.IsLogin("userID", r); ok {
+		userJSON, _ := json.Marshal(loginResponse{
+			Message: "Auto login success",
+			User:    currentUser,
+		})
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(userJSON)
+		return
+	}
+
+	var user model.User
+	var ok bool
+
+	// Redirect if external login API
+	if _, err := gothic.GetProviderName(r); err == nil {
+		user, ok = auth.AuthProvider(w, r)
+		if !ok {
+			gothic.BeginAuthHandler(w, r)
 			return
 		}
 	}
 
-	gothUser, err := gothic.CompleteUserAuth(w, r)
-	if err != nil {
-		gothic.BeginAuthHandler(w, r)
-		return
-	}
-
 	userJSON, err := json.Marshal(loginResponse{
 		Message: "Login success",
-		User: model.User{
-			ID:          gothUser.UserID,
-			Name:        gothUser.Name,
-			Description: gothUser.Description,
-		},
+		User:    user,
 	})
 
 	w.Header().Set("Content-Type", "application/json")
