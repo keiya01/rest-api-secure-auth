@@ -14,8 +14,8 @@ func NewStore() *sessions.CookieStore {
 	return sessions.NewCookieStore(crypto.GenerateRandomKey(64), crypto.GenerateRandomKey(32))
 }
 
-func SetSessionStore(sessionStore *sessions.CookieStore) {
-	store = sessionStore
+func SetCookieStore(cookieStore *sessions.CookieStore) {
+	store = cookieStore
 }
 
 func Get(r *http.Request, name string) (*sessions.Session, error) {

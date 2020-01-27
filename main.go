@@ -1,12 +1,12 @@
 package main
 
 import (
-	"github.com/keiya01/rest-api-secure-auth/database"
-	"github.com/keiya01/rest-api-secure-auth/sessions"
-	"github.com/keiya01/rest-api-secure-auth/router"
 	"fmt"
 	"github.com/joho/godotenv"
 	"github.com/keiya01/rest-api-secure-auth/auth"
+	"github.com/keiya01/rest-api-secure-auth/database"
+	"github.com/keiya01/rest-api-secure-auth/router"
+	"github.com/keiya01/rest-api-secure-auth/sessions"
 	"github.com/markbates/goth/gothic"
 	"log"
 	"net/http"
@@ -20,8 +20,8 @@ func init() {
 
 	auth.SetProvider()
 
-	sessionStore := sessions.NewStore()
-	sessions.SetSessionStore(sessionStore)
+	cookieStore := sessions.NewStore()
+	sessions.SetCookieStore(cookieStore)
 
 	gothic.Store = sessions.NewStore()
 
