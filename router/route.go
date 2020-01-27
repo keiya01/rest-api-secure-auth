@@ -14,7 +14,7 @@ func newRouter() *Router {
 	}
 }
 
-func (r *Router)newSubrouter(path string) *Router {
+func (r *Router) newSubrouter(path string) *Router {
 	return &Router{
 		r.PathPrefix("/api/v1").Subrouter(),
 	}
@@ -22,10 +22,11 @@ func (r *Router)newSubrouter(path string) *Router {
 
 func UseRouter() *Router {
 	r := newRouter()
-	
-	r.middleware()
 
 	api := r.newSubrouter("/api/v1")
+
+	api.middleware()
+
 	api.auth()
 	api.user()
 
