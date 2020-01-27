@@ -1,9 +1,9 @@
 package sessions
 
 import (
-	"net/http"
-	"github.com/gorilla/securecookie"
 	"github.com/gorilla/sessions"
+	"github.com/keiya01/rest-api-secure-auth/crypto"
+	"net/http"
 )
 
 var SESSION_STORE_NAME = "cookie-store"
@@ -11,9 +11,8 @@ var SESSION_STORE_NAME = "cookie-store"
 var store = &sessions.CookieStore{}
 
 func NewStore() *sessions.CookieStore {
-	return sessions.NewCookieStore(securecookie.GenerateRandomKey(64), securecookie.GenerateRandomKey(32))
+	return sessions.NewCookieStore(crypto.GenerateRandomKey(64), crypto.GenerateRandomKey(32))
 }
-
 
 func SetSessionStore(sessionStore *sessions.CookieStore) {
 	store = sessionStore
