@@ -1,7 +1,15 @@
 package model
 
 type User struct {
-	ID string `json:"id"`
-	Name string `json:"name"`
+	ID          string `json:"id"`
+	Name        string `json:"name"`
 	Description string `json:"description"`
+}
+
+func NewUser(id string, name string, description string) User {
+	return User{
+		ID:          id,
+		Name:        name,
+		Description: description,
+	}
 }
