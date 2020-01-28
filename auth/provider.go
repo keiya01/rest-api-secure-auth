@@ -10,7 +10,7 @@ import (
 )
 
 func SetProvider() {
-	goth.UseProviders(twitter.New(os.Getenv("TWITTER_CLIENT_KEY"), os.Getenv("TWITTER_SECRET_KEY"), "http://localhost:8080/api/v1/login/twitter/callback"))
+	goth.UseProviders(twitter.New(os.Getenv("TWITTER_CLIENT_KEY"), os.Getenv("TWITTER_SECRET_KEY"), "http://localhost:8080/api/v1/auth/twitter/callback"))
 }
 
 func AuthProvider(w http.ResponseWriter, r *http.Request) (model.User, bool) {
@@ -19,5 +19,5 @@ func AuthProvider(w http.ResponseWriter, r *http.Request) (model.User, bool) {
 		return model.User{}, false
 	}
 
-	return model.NewUser(gothUser.UserID,gothUser.Name,gothUser.Description), true
+	return model.NewUser(gothUser.UserID, gothUser.Name, gothUser.Description, ""), true
 }
