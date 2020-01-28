@@ -11,8 +11,18 @@
 # Secure API
 - [x] 基本的に`gorilla`関連のpackageは様々な機能を小分けで提供してくれているため必要な物を組み合わせて安全に開発を行える
 - [x] セッション情報はCookieに保存した方が安全(JWTはできるだけ避ける)
+  - Cookie だと`httpOnly`や`secure`などのオプションから安全な設定を追加できる
+  - JWTはうまく運用できるなら良いが、`expires`をできるだけ短くする必要があったり、不便な点も多い
+- [x] Cookie の扱いに気をつける
+  - Cookie を信用しすぎない設計にする
+  - ユーザー情報の編集などの個人情報の編集には必ず Password を求めるようにする
 - [x] User ID を Cookie に保存する時は予測不可能なものに暗号化してからいれる(予測可能だとcookieを弄れば不正にログインできる)
   - `gorilla/sessions`を使うと楽
 - [x] Cookieの`httpOnly`と`secure`を`true`にする(`httpOnly`はJSからアクセス不可能にするためで、`secure`は`https`でのみCookieを扱うことを指定する)
+  - 開発の段階で`secure`を`true`にしていると localhost で使用できない可能性があるため、開発時は`false`で良い
 - [x] CSRF対策をする(仕組みは[gorilla/csrf](https://github.com/gorilla/csrf#javascript-applications)または[gorilla/csrf で安全なWebフォームを作る](http://matope.hatenablog.com/entry/2019/06/05/144435)を見るとわかりやすい)
-- [x] SQL Injection(このRepoではDBを使っていない)
+  - cookieに CSRF Token を保存しておき、Client に Response する
+  - Client では受け取った Token を Request に含めて送信する
+- CSRF対策として`Preflight Request`もあるが、`CSRF Token`を発行していれば、Request Origin の検証は可能なので必要ないはず(間違っていたら教えてください、、)
+- [x] SQL Injection
+- [x] Passwordなどの見られてはいけない重要な情報を暗号化してからDBに保存する
