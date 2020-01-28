@@ -10,12 +10,12 @@ func (r *Router) auth() {
 	a := handler.NewAuthHandler()
 	authRouter.Use(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if !a.HandleAutoLogin(w, r) {
+			if !a.AutoLogin(w, r) {
 				next.ServeHTTP(w, r)
 			}
 		})
 	})
-	authRouter.HandleFunc("/{provider}", a.HandleExternalLogin).Methods(http.MethodGet)
-	authRouter.HandleFunc("/", a.HandleLogin).Methods(http.MethodPost)
+	authRouter.HandleFunc("/{provider}", a.ExternalLogin).Methods(http.MethodGet)
+	authRouter.HandleFunc("/", a.Login).Methods(http.MethodPost)
 	authRouter.HandleFunc("/{provider}/callback", a.AuthCallback).Methods(http.MethodGet)
 }

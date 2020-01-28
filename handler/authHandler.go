@@ -28,7 +28,7 @@ func NewAuthHandler() *AuthHandler {
 	return &AuthHandler{}
 }
 
-func (a *AuthHandler) HandleAutoLogin(w http.ResponseWriter, r *http.Request) bool {
+func (a *AuthHandler) AutoLogin(w http.ResponseWriter, r *http.Request) bool {
 	if currentUser, ok := auth.IsLogin("userID", r); ok {
 		userJSON, _ := json.Marshal(loginResponse{
 			Message:  "Auto login success",
@@ -69,7 +69,7 @@ func (a *AuthHandler) AuthCallback(w http.ResponseWriter, r *http.Request) {
 	)
 }
 
-func (a *AuthHandler) HandleExternalLogin(w http.ResponseWriter, r *http.Request) {
+func (a *AuthHandler) ExternalLogin(w http.ResponseWriter, r *http.Request) {
 	if _, err := gothic.GetProviderName(r); err != nil {
 		response.UseCSRFToken(w, r)
 		http.Error(w, "The request has Invalid parameter", http.StatusBadRequest)
@@ -104,7 +104,7 @@ type LoginUser struct {
 	Password string `json:"password" validate:"required,min=5"`
 }
 
-func (a *AuthHandler) HandleLogin(w http.ResponseWriter, r *http.Request) {
+func (a *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	b, err := ioutil.ReadAll(r.Body)
 	defer r.Body.Close()
 	if err != nil {
