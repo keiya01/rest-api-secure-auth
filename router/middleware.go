@@ -7,7 +7,8 @@ import (
 )
 
 func useCSRF() func(http.Handler) http.Handler {
-	return csrf.Protect(crypto.GenerateRandomKey(32))
+	// TODO: Remove csrf.Secure in production
+	return csrf.Protect(crypto.GenerateRandomKey(32), csrf.Secure(false))
 }
 
 func (r *Router) middleware() {
