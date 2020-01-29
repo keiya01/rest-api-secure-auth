@@ -32,7 +32,7 @@ func (a *AuthHandler) AutoLogin(w http.ResponseWriter, r *http.Request) bool {
 	if currentUser, ok := auth.IsLogin("userID", r); ok {
 		userJSON, _ := json.Marshal(loginResponse{
 			Message:  "Auto login success",
-			User:     currentUser,
+			User:     model.NewUser(currentUser.ID, currentUser.Name, currentUser.Description, currentUser.Email, ""),
 			Provider: mux.Vars(r)["provider"],
 		})
 		response.SetAuthAPIHeader(w, r, http.StatusOK)
@@ -52,7 +52,7 @@ func (a *AuthHandler) AuthCallback(w http.ResponseWriter, r *http.Request) {
 
 	session, _ := sessions.Get(r, sessions.SESSION_STORE_NAME)
 
-	user := model.NewUser(gothUser.UserID, gothUser.Name, gothUser.Description, "")
+	user := model.NewUser(gothUser.UserID, gothUser.Name, gothUser.Description, "", "")
 
 	session.Values["userID"] = user.ID
 	session.Options = sessions.CookieOptions
@@ -84,7 +84,7 @@ func (a *AuthHandler) ExternalLogin(w http.ResponseWriter, r *http.Request) {
 
 	userJSON, err := json.Marshal(loginResponse{
 		Message:  "Login success",
-		User:     user,
+		User:     model.NewUser(user.ID, user.Name, user.Description, user.Email, ""),
 		Provider: mux.Vars(r)["provider"],
 	})
 
@@ -161,17 +161,31 @@ func (a *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	// TODO: Add email authentication
 	session, _ := sessions.Get(r, sessions.SESSION_STORE_NAME)
 
-	resUser := model.NewUser(string(crypto.GenerateRandomKey(32)), user.Username, "", user.Email)
+	resUser := model.NewUser(string(crypto.GenerateRandomKey(32)), user.Username, "", user.Email, user.Password)
 
 	session.Values["userID"] = resUser.ID
 	session.Options = sessions.CookieOptions
 	sessions.Save(r, w, session)
 
-	database.Insert(resUser.ID, user)
+	var (
+		currentUser model.User
+		ok          bool
+	)
+
+	if currentUser, ok = database.Get(resUser.ID).(model.User); !ok {
+		response.UseCSRFToken(w, r)
+		http.Error(w, "User not found", http.StatusBadRequest)
+		return
+	}
+
+	if currentUser.Password != resUser.Password {
+		response.UseCSRFToken(w, r)
+		http.Error(w, "User not found", http.StatusBadRequest)
+	}
 
 	res := loginResponse{
 		Message:  "Login Success",
-		User:     resUser,
+		User:     model.NewUser(currentUser.ID, currentUser.Name, currentUser.Description, currentUser.Email, ""),
 		Provider: "",
 	}
 	resJSON, err := json.Marshal(res)
