@@ -11,7 +11,7 @@
 # Secure API
 - [x] 基本的に`gorilla`関連のpackageは様々な機能を小分けで提供してくれているため必要な物を組み合わせて安全に開発を行える
 - [x] セッション情報は`Cookie`または`JWT`に保存する
-  - **Cookie**
+  - **Cookie** 場合にもよるがこっちの方が良さそう?
     - `Cookie`を使う場合は`httpOnly`や`secure`などのオプションから安全な設定を追加できるため、`XSS`からの攻撃を防ぐことできるが、`CSRF`は自前で実装して防ぐ必要がある
     - 安全に実装するなら`Cookie`のような気がする
   - **JWT**
@@ -27,10 +27,12 @@
   - 開発の段階で`secure`を`true`にしていると localhost で使用できない可能性があるため、開発時は`false`で良い
 - [x] `CORS`をちゃんと設定する
   - `CORS`をしっかり設定した上で`CSRF Token`をレスポンスする
-- [x] CSRF対策をする(仕組みは[gorilla/csrf](https://github.com/gorilla/csrf#javascript-applications)または[gorilla/csrf で安全なWebフォームを作る](http://matope.hatenablog.com/entry/2019/06/05/144435)を見るとわかりやすい)
+- [x] CSRF対策をする
+  - [gorilla/csrf](https://github.com/gorilla/csrf#javascript-applications)または[gorilla/csrf で安全なWebフォームを作る](http://matope.hatenablog.com/entry/2019/06/05/144435)を使うと楽
+  - CSRFの必要性(https://qiita.com/mpyw/items/0595f07736cfa5b1f50c)
   - cookieに CSRF Token を保存しておき、Client に Response する
   - Client では受け取った Token を Request に含めて送信する
-  - `JWT`を使うことでステートレスなCSRF対策ができる
-- CSRF対策として`Preflight Request`もあるが、`CSRF Token`を発行していれば、Request Origin の検証は可能なので必要ないはず(間違っていたら教えてください、、)
+  - `JWT`を使うことでステートレスなCSRF対策ができる(https://qiita.com/kaiinui/items/21ec7cc8a1130a1a103a)
+- CSRF対策として`Preflight Request`もあるが、`CSRF Token`を発行していれば、Same-Origin であることの検証は可能なので必要ない
 - [x] SQL Injection
 - [x] Passwordなどの見られてはいけない重要な情報を暗号化してからDBに保存する
