@@ -25,6 +25,8 @@
   - `gorilla/sessions`を使うと楽
 - [x] Cookieの`httpOnly`と`secure`を`true`にする(`httpOnly`はJSからアクセス不可能にするためで、`secure`は`https`でのみCookieを扱うことを指定する)
   - 開発の段階で`secure`を`true`にしていると localhost で使用できない可能性があるため、開発時は`false`で良い
+- [x] `CORS`をちゃんと設定する
+  - `CORS`をしっかり設定した上で`CSRF Token`をレスポンスする
 - [x] CSRF対策をする(仕組みは[gorilla/csrf](https://github.com/gorilla/csrf#javascript-applications)または[gorilla/csrf で安全なWebフォームを作る](http://matope.hatenablog.com/entry/2019/06/05/144435)を見るとわかりやすい)
   - cookieに CSRF Token を保存しておき、Client に Response する
   - Client では受け取った Token を Request に含めて送信する
