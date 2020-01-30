@@ -29,6 +29,12 @@ func NewAuthHandler() *AuthHandler {
 	return &AuthHandler{}
 }
 
+// TODO: ここ実装したらテスト書く
+func (a *AuthHandler) Token(w http.ResponseWriter, r *http.Request) {
+	response.UseCSRFToken(w, r)
+	w.WriteHeader(http.StatusOK)
+}
+
 func (a *AuthHandler) AutoLogin(w http.ResponseWriter, r *http.Request) bool {
 	if currentUser, ok := auth.IsLogin("userID", r); ok {
 		userJSON, _ := json.Marshal(loginResponse{
@@ -121,7 +127,6 @@ func (a *AuthHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 	err = validate.Struct(user)
 
 	if err != nil {
-
 		errorRes := map[string]interface{}{
 			"errors": validation.Extract(err.(validator.ValidationErrors), []string{"UserName", "Email", "Password"}),
 		}
@@ -179,28 +184,9 @@ func (a *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	validate := validator.New()
 	err = validate.Struct(user)
 
-	errors := []map[string]string{}
-
 	if err != nil {
-		for _, err := range err.(validator.ValidationErrors) {
-			errorMap := map[string]string{}
-			field := err.Field()
-			switch field {
-			case "Email":
-				errorMap = map[string]string{
-					"field":     "email",
-					"errorType": err.Type().String(),
-				}
-			case "Password":
-				errorMap = map[string]string{
-					"field":     "username",
-					"errorType": err.Type().String(),
-				}
-			}
-			errors = append(errors, errorMap)
-		}
 		errorRes := map[string]interface{}{
-			"errors": errors,
+			"errors": validation.Extract(err.(validator.ValidationErrors), []string{"Email", "Password"}),
 		}
 		errorResJSON, _ := json.Marshal(errorRes)
 		response.SetHeader(w, r, http.StatusBadRequest)
