@@ -17,5 +17,6 @@ func (r *Router) auth() {
 	})
 	authRouter.HandleFunc("/{provider}", a.ExternalLogin).Methods(http.MethodGet)
 	authRouter.HandleFunc("/", a.Login).Methods(http.MethodPost)
+	authRouter.HandleFunc("/signup", a.SignUp).Methods(http.MethodPost)
 	authRouter.HandleFunc("/{provider}/callback", a.AuthCallback).Methods(http.MethodGet)
 }

@@ -98,13 +98,13 @@ func (a *AuthHandler) ExternalLogin(w http.ResponseWriter, r *http.Request) {
 	w.Write(userJSON)
 }
 
-type LoginUser struct {
+type SignUpUser struct {
 	Username string `json:"username" validate:"required,max=50"`
 	Email    string `json:"email" validate:"required,email"`
 	Password string `json:"password" validate:"required,min=5"`
 }
 
-func (a *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
+func (a *AuthHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 	b, err := ioutil.ReadAll(r.Body)
 	defer r.Body.Close()
 	if err != nil {
@@ -113,7 +113,7 @@ func (a *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var user LoginUser
+	var user SignUpUser
 	err = json.Unmarshal(b, &user)
 	if err != nil {
 		response.UseCSRFToken(w, r)
@@ -158,7 +158,85 @@ func (a *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: Add email authentication
+	session, _ := sessions.Get(r, sessions.SESSION_STORE_NAME)
+
+	resUser := model.NewUser(string(crypto.GenerateRandomKey(32)), user.Username, "", user.Email, user.Password)
+
+	session.Values["userID"] = resUser.ID
+	session.Options = sessions.CookieOptions
+	sessions.Save(r, w, session)
+
+	database.Insert(resUser.ID, resUser)
+
+	res := loginResponse{
+		Message:  "Login Success",
+		User:     model.NewUser(resUser.ID, resUser.Name, resUser.Description, resUser.Email, ""),
+		Provider: "",
+	}
+	resJSON, err := json.Marshal(res)
+	if err != nil {
+		response.UseCSRFToken(w, r)
+		http.Error(w, "Failed JSON encoding of response", http.StatusInternalServerError)
+		return
+	}
+	w.Write(resJSON)
+}
+
+type LoginUser struct {
+	Username string `json:"username" validate:"required,max=50"`
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required,min=5"`
+}
+
+func (a *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
+	b, err := ioutil.ReadAll(r.Body)
+	defer r.Body.Close()
+	if err != nil {
+		response.UseCSRFToken(w, r)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	var user LoginUser
+	err = json.Unmarshal(b, &user)
+	if err != nil {
+		response.UseCSRFToken(w, r)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	validate := validator.New()
+	err = validate.Struct(user)
+
+	errors := []map[string]string{}
+
+	if err != nil {
+		for _, err := range err.(validator.ValidationErrors) {
+			errorMap := map[string]string{}
+			field := err.Field()
+			switch field {
+			case "Email":
+				errorMap = map[string]string{
+					"field":     "email",
+					"errorType": err.Type().String(),
+				}
+			case "Password":
+				errorMap = map[string]string{
+					"field":     "username",
+					"errorType": err.Type().String(),
+				}
+			}
+			errors = append(errors, errorMap)
+		}
+		response.SetAuthAPIHeader(w, r, http.StatusBadRequest)
+		errorRes := map[string]interface{}{
+			"errors": errors,
+		}
+		errorResJSON, _ := json.Marshal(errorRes)
+		w.Write(errorResJSON)
+		return
+	}
+
 	session, _ := sessions.Get(r, sessions.SESSION_STORE_NAME)
 
 	resUser := model.NewUser(string(crypto.GenerateRandomKey(32)), user.Username, "", user.Email, user.Password)
