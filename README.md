@@ -38,6 +38,6 @@
   - cookieに CSRF Token を保存しておき、Client に Response する
   - Client では受け取った Token を Request に含めて送信する
   - `JWT`を使うことでステートレスなCSRF対策ができる(https://qiita.com/kaiinui/items/21ec7cc8a1130a1a103a)
-- CSRF対策として`Preflight Request`を使う方法もあるが、`CSRF Token`を発行していれば、Same Origin であることの検証は可能なので必要ない
+  - CSRF対策として`Preflight Request`を使う方法もあるが、`CSRF Token`を発行していれば、Same Origin であることの検証は可能なので必要ない
 - [x] SQL Injection
 - [x] Passwordなどの見られてはいけない重要な情報を暗号化してからDBに保存する
