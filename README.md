@@ -24,15 +24,20 @@
 - [x] User ID を Cookie に保存する時は予測不可能なものに暗号化してからいれる(予測可能だとcookieを弄れば不正にログインできる)
   - `gorilla/sessions`を使うと楽
 - [x] Cookieの`httpOnly`と`secure`を`true`にする(`httpOnly`はJSからアクセス不可能にするためで、`secure`は`https`でのみCookieを扱うことを指定する)
-  - 開発の段階で`secure`を`true`にしていると localhost で使用できない可能性があるため、開発時は`false`で良い
-- [x] `CORS`をちゃんと設定する
-  - `CORS`をしっかり設定した上で`CSRF Token`をレスポンスする
-- [x] CSRF対策をする
-  - [gorilla/csrf](https://github.com/gorilla/csrf#javascript-applications)または[gorilla/csrf で安全なWebフォームを作る](http://matope.hatenablog.com/entry/2019/06/05/144435)を使うと楽
-  - CSRFの必要性(https://qiita.com/mpyw/items/0595f07736cfa5b1f50c)
+  - 開発の段階で`secure`を`true`にしていると`localhost`で使用できない可能性があるため、開発時は`false`で良い(公開する時には`true`にすること)
+- [x] `CORS`をちゃんと設定する([オリジン間リソース共有 (CORS)](https://developer.mozilla.org/ja/docs/Web/HTTP/CORS))
+  - `Access-Control-Allow-Origin` ... 許可するOriginを指定する(デフォルトは同じOriginが指定される)
+  - `Access-Control-Allow-Methods` ... 許可する`HTTP Method`を指定する(`GET, POST, OPTIONS, HEAD`など)
+  - `Access-Control-Allow-Headers` ... 許可するヘッダーを指定する。プリフライトリクエストのレスポンスで使用される。(`Content-Type, Authorization`など)
+  - `Access-Control-Allow-Credentials` ... 資格情報が必要なリクエストに対して、レスポンスを開示するかどうか(普通は何も指定しなくて良い) 
+  - `Access-Control-Max-Age` ... プリフライトリクエストを何度も呼ぶのはオーバーヘッドになるので、このヘッダーに時間を指定することでキャッシュさせることができる
+  - 上記の`CORS`をしっかり設定した上で`CSRF Token`をレスポンスする
+- [x] `CSRF`対策をする
+  - [gorilla/csrf](https://github.com/gorilla/csrf#javascript-applications)を使うと楽
+  - CSRFの必要性([これで完璧！今さら振り返る CSRF 対策と同一オリジンポリシーの基礎](https://qiita.com/mpyw/items/0595f07736cfa5b1f50c), [gorilla/csrf で安全なWebフォームを作る](http://matope.hatenablog.com/entry/2019/06/05/144435))
   - cookieに CSRF Token を保存しておき、Client に Response する
   - Client では受け取った Token を Request に含めて送信する
   - `JWT`を使うことでステートレスなCSRF対策ができる(https://qiita.com/kaiinui/items/21ec7cc8a1130a1a103a)
-- CSRF対策として`Preflight Request`もあるが、`CSRF Token`を発行していれば、Same-Origin であることの検証は可能なので必要ない
+- CSRF対策として`Preflight Request`を使う方法もあるが、`CSRF Token`を発行していれば、Same Origin であることの検証は可能なので必要ない
 - [x] SQL Injection
 - [x] Passwordなどの見られてはいけない重要な情報を暗号化してからDBに保存する
