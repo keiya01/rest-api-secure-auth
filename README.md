@@ -11,10 +11,10 @@
 # Secure API
 - [x] 基本的に`gorilla`関連のpackageは様々な機能を小分けで提供してくれているため必要な物を組み合わせて安全に開発を行える
 - [x] セッション情報は`Cookie`または`JWT`に保存する
-  - Cookie
+  - **Cookie**
     - `Cookie`を使う場合は`httpOnly`や`secure`などのオプションから安全な設定を追加できるため、`XSS`からの攻撃を防ぐことできるが、`CSRF`は自前で実装して防ぐ必要がある
     - 安全に実装するなら`Cookie`のような気がする
-  - JWT
+  - **JWT**
     - `JWT`はブラウザの`LocalStrage`に保存することができ、`JWT`に情報を持たせることができるので`Server`をステートレスに保つことができる
     - `LocalStrage`は`Same-Origin`の場合のみでしか、I/O処理を行うことができないため`CSRF`の問題はないが、`XSS`によって情報を抜き取られる可能性がある
     - `XSS`を100%含まないと言い切れるサイトはない?(https://techracho.bpsinc.jp/hachi8833/2019_10_09/80851)
