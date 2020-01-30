@@ -35,7 +35,7 @@ func (a *AuthHandler) AutoLogin(w http.ResponseWriter, r *http.Request) bool {
 			User:     model.NewUser(currentUser.ID, currentUser.Name, currentUser.Description, currentUser.Email, ""),
 			Provider: mux.Vars(r)["provider"],
 		})
-		response.SetAuthAPIHeader(w, r, http.StatusOK)
+		response.SetHeader(w, r, http.StatusOK)
 		w.Write(userJSON)
 		return true
 	}
@@ -45,7 +45,6 @@ func (a *AuthHandler) AutoLogin(w http.ResponseWriter, r *http.Request) bool {
 func (a *AuthHandler) AuthCallback(w http.ResponseWriter, r *http.Request) {
 	gothUser, err := gothic.CompleteUserAuth(w, r)
 	if err != nil {
-		response.UseCSRFToken(w, r)
 		http.Error(w, "Login failure", http.StatusInternalServerError)
 		return
 	}
@@ -71,7 +70,6 @@ func (a *AuthHandler) AuthCallback(w http.ResponseWriter, r *http.Request) {
 
 func (a *AuthHandler) ExternalLogin(w http.ResponseWriter, r *http.Request) {
 	if _, err := gothic.GetProviderName(r); err != nil {
-		response.UseCSRFToken(w, r)
 		http.Error(w, "The request has Invalid parameter", http.StatusBadRequest)
 		return
 	}
@@ -89,12 +87,11 @@ func (a *AuthHandler) ExternalLogin(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if err != nil {
-		response.UseCSRFToken(w, r)
 		http.Error(w, err.Error(), http.StatusForbidden)
 		return
 	}
 
-	response.SetAuthAPIHeader(w, r, http.StatusOK)
+	response.SetHeader(w, r, http.StatusOK)
 	w.Write(userJSON)
 }
 
@@ -108,7 +105,6 @@ func (a *AuthHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 	b, err := ioutil.ReadAll(r.Body)
 	defer r.Body.Close()
 	if err != nil {
-		response.UseCSRFToken(w, r)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -116,7 +112,6 @@ func (a *AuthHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 	var user SignUpUser
 	err = json.Unmarshal(b, &user)
 	if err != nil {
-		response.UseCSRFToken(w, r)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -149,11 +144,11 @@ func (a *AuthHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 			}
 			errors = append(errors, errorMap)
 		}
-		response.SetAuthAPIHeader(w, r, http.StatusBadRequest)
 		errorRes := map[string]interface{}{
 			"errors": errors,
 		}
 		errorResJSON, _ := json.Marshal(errorRes)
+		response.SetHeader(w, r, http.StatusBadRequest)
 		w.Write(errorResJSON)
 		return
 	}
@@ -175,10 +170,10 @@ func (a *AuthHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 	}
 	resJSON, err := json.Marshal(res)
 	if err != nil {
-		response.UseCSRFToken(w, r)
 		http.Error(w, "Failed JSON encoding of response", http.StatusInternalServerError)
 		return
 	}
+	response.SetHeader(w, r, http.StatusOK)
 	w.Write(resJSON)
 }
 
@@ -192,7 +187,6 @@ func (a *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	b, err := ioutil.ReadAll(r.Body)
 	defer r.Body.Close()
 	if err != nil {
-		response.UseCSRFToken(w, r)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -200,7 +194,6 @@ func (a *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var user LoginUser
 	err = json.Unmarshal(b, &user)
 	if err != nil {
-		response.UseCSRFToken(w, r)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -228,11 +221,11 @@ func (a *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 			}
 			errors = append(errors, errorMap)
 		}
-		response.SetAuthAPIHeader(w, r, http.StatusBadRequest)
 		errorRes := map[string]interface{}{
 			"errors": errors,
 		}
 		errorResJSON, _ := json.Marshal(errorRes)
+		response.SetHeader(w, r, http.StatusBadRequest)
 		w.Write(errorResJSON)
 		return
 	}
@@ -251,13 +244,11 @@ func (a *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if currentUser, ok = database.Get(resUser.ID).(model.User); !ok {
-		response.UseCSRFToken(w, r)
 		http.Error(w, "User not found", http.StatusBadRequest)
 		return
 	}
 
 	if currentUser.Password != resUser.Password {
-		response.UseCSRFToken(w, r)
 		http.Error(w, "User not found", http.StatusBadRequest)
 	}
 
@@ -268,9 +259,9 @@ func (a *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 	resJSON, err := json.Marshal(res)
 	if err != nil {
-		response.UseCSRFToken(w, r)
 		http.Error(w, "Failed JSON encoding of response", http.StatusInternalServerError)
 		return
 	}
+	response.SetHeader(w, r, http.StatusOK)
 	w.Write(resJSON)
 }
