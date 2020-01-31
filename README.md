@@ -23,8 +23,18 @@
 - [x] Cookie の扱いに気をつける
   - Cookie を信用しすぎない設計にする
   - ユーザー情報の編集などの個人情報の編集には必ず Password を求めるようにする
-- [x] User ID を Cookie に保存する時は予測不可能なものに暗号化してからいれる(予測可能だとcookieを弄れば不正にログインできる)
-  - `gorilla/sessions`を使うと楽
+- [x] 予測可能な情報をSessionIDに指定してはいけない
+  - IDや日時など推測可能な値をSessionIDに指定すると、簡単に推測されて不正に情報をとられ、ログインなどの処理が可能になる
+  - また推測可能な値をハッシュ化して指定することもよくない(時間をかければ推測される可能性があるため)
+  - そのためSessionIDの生成には、言語が指定指定しているプログラムやフレームワークなどの機能を使うと良い
+  - Goでは`gorilla/sessions`を使うと楽
+ - [x] SessionIDの固定化攻撃を防ぐ
+  - SessionIDの固定化攻撃とは攻撃者が被害者に対して、SessionIDをなんらの方法で指定することにより、指定されたSessionIDで被害者がログインすると、攻撃者は指定したSessionIDにより、ログイン状態となる脆弱性である。
+  - また、ログインしていなくても入力した情報をSessionに逐一保存している場合、固定化攻撃によりSessionIDを指定されると、そのSessionに情報が蓄積されることで攻撃者に情報が抜き取られる可能性がある
+  - 多くの場合は心配ないが、セッションアダプションというセッションを外部から指定できるような機能を持っている言語(PHPなど)で起きやすい。しかし、基本的にこれらの機能はデフォルトでfalseになっているはずなので心配はいらないはずである。
+  - Cookie に SessionID を保存する(URLに保存しない)
+  - 認証成功後に SessionID を変更する(変更できない場合はTokenによりSessionIDの認証を行う)
+  - 認証前に機密情報をSessionに保存しない
 - [x] Cookieの`httpOnly`と`secure`を`true`にする(`httpOnly`はJSからアクセス不可能にするためで、`secure`は`https`でのみCookieを扱うことを指定する)
   - 開発の段階で`secure`を`true`にしていると`localhost`で使用できない可能性があるため、開発時は`false`で良い(公開する時には`true`にすること)
 
@@ -50,6 +60,23 @@
   - `GET, OPTIONS, HEAD, TRACE`はCSRFの検証をする必要がないはず(データの変更を行うような処理を含まないため)
   - `JWT`を使うことでステートレスなCSRF対策ができる(https://qiita.com/kaiinui/items/21ec7cc8a1130a1a103a)
   - CSRF対策として`Preflight Request`を使う方法もあるが、`CSRF Token`を発行していれば、Same Origin であることの検証は可能なので必要ない
+
+### X-Frame-Options
+- クリックジャッキングなどの脆弱性対策として必要
+- クリックジャッキングは、攻撃者が作成した偽サイトに`iframe`を使ってTwitterなどの一般的なサイトを表示し、その一般的なサイトの投稿ボタンなどの上に罠サイトへのリンクや、攻撃用のプログラムを含めておき、実行させるというものである。
+- この攻撃を防ぐためには、Originまたは指定されたOrigin以外のサイトでは`iframe`を使用できないようにする必要がある。
+- それが`X-Frame-Options`である
+- これを含めることで、知らないサイトから`iframe`を使って自分のサイトを表示される事はなくなるため、脆弱性を防ぐことができる
+- 実際にTwitterを`iframe`から参照しようとすると`Refused to display 'https://twitter.com/' in a frame because it set 'X-Frame-Options' to 'deny'`というエラーが出力される
+- 参考: https://qiita.com/mejileben/items/39d897757d5c3a904721
+
+### X-XSS-Protection
+- XSSを検知した時に無害な出力に変換する
+- 各ブラウザでデフォルトでは有効になっているが、ユーザーの設定で無効にできるため、`X-XSS-Protection`を設定することで矯正させることができる
+
+### X-Content-Type-Options
+- MIME Type が変更されないように強制するために付与する
+- https://developer.mozilla.org/ja/docs/Web/HTTP/Headers/X-Content-Type-Options
 
 ### その他
 - [x] SQL Injection
