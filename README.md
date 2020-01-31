@@ -47,6 +47,7 @@
   - CSRFの必要性([これで完璧！今さら振り返る CSRF 対策と同一オリジンポリシーの基礎](https://qiita.com/mpyw/items/0595f07736cfa5b1f50c), [gorilla/csrf で安全なWebフォームを作る](http://matope.hatenablog.com/entry/2019/06/05/144435))
   - cookieに CSRF Token を保存しておき、Client に Response する
   - Client では受け取った Token を Request に含めて送信する
+  - `GET, OPTIONS, HEAD, TRACE`はCSRFの検証をする必要がないはず(データの変更を行うような処理を含まないため)
   - `JWT`を使うことでステートレスなCSRF対策ができる(https://qiita.com/kaiinui/items/21ec7cc8a1130a1a103a)
   - CSRF対策として`Preflight Request`を使う方法もあるが、`CSRF Token`を発行していれば、Same Origin であることの検証は可能なので必要ない
 
