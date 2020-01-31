@@ -16,7 +16,19 @@ func cors(next http.Handler) http.Handler {
 	})
 }
 
+// Use X-Frame-Options as middleware
+func common(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Available values are DENY, SAMEORIGIN, ALLOW-FROM
+		w.Header().Set("X-Frame-Options", "DENY")
+		w.Header().Set("X-Content-Type-Options", "nosniff")
+		w.Header().Set("X-Xss-Protection", "1; mode=block")
+		next.ServeHTTP(w, r)
+	})
+}
+
 func (r *Router) middleware() {
 	r.Use(cors)
+	r.Use(common)
 	r.Use(csrf.Protect(crypto.GenerateRandomKey(32), csrf.Secure(false))) // TODO: Remove csrf.Secure in production
 }
