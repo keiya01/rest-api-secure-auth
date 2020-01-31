@@ -37,7 +37,7 @@ func Extract(validationErrors validator.ValidationErrors, whiteField []string) e
 		var errorMap validation
 		field := err.Field()
 		if contains(field, whiteField) {
-			errorMap = newValidation(field, err.Type().String())
+			errorMap = newValidation(field, err.Tag())
 		}
 		errors[field] = errorMap
 	}
