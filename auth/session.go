@@ -22,8 +22,8 @@ func checkSession(key string, r *http.Request) (string, bool) {
 	return val, true
 }
 
-func IsLogin(sessionKey string, r *http.Request) (model.User, bool) {
-	userID, ok := checkSession(sessionKey, r)
+func IsLogin(sessionField string, r *http.Request) (model.User, bool) {
+	userID, ok := checkSession(sessionField, r)
 	if !ok {
 		return model.User{}, false
 	}
