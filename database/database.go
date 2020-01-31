@@ -12,6 +12,10 @@ func NewDB() *MockDB {
 	}
 }
 
+func GetDB() *MockDB {
+	return db
+}
+
 func SetDB(_db *MockDB) {
 	db = _db
 }

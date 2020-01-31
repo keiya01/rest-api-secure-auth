@@ -1,5 +1,9 @@
 package model
 
+import (
+	"github.com/keiya01/rest-api-secure-auth/database"
+)
+
 type User struct {
 	ID          string `json:"id"`
 	Name        string `json:"name"`
@@ -16,4 +20,18 @@ func NewUser(id string, name string, description string, email string, password 
 		Email:       email,
 		Password:    password,
 	}
+}
+
+func (u User) FindByEmail() User {
+	db := database.GetDB()
+	for _, item := range db.Values {
+		user, ok := item.(User)
+		if !ok {
+			return User{}
+		}
+		if user.Email == u.Email {
+			return user
+		}
+	}
+	return User{}
 }
