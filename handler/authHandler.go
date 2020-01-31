@@ -128,7 +128,7 @@ func (a *AuthHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		errorRes := map[string]interface{}{
-			"errors": validation.Extract(err.(validator.ValidationErrors), []string{"UserName", "Email", "Password"}),
+			"errors": validation.Extract(err.(validator.ValidationErrors), []string{"Username", "Email", "Password"}),
 		}
 		errorResJSON, _ := json.Marshal(errorRes)
 		response.SetHeader(w, r, http.StatusBadRequest)
@@ -161,7 +161,6 @@ func (a *AuthHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 }
 
 type LoginUser struct {
-	Username string `json:"username" validate:"required,max=50"`
 	Email    string `json:"email" validate:"required,email"`
 	Password string `json:"password" validate:"required,min=5"`
 }
@@ -174,15 +173,15 @@ func (a *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var user LoginUser
-	err = json.Unmarshal(b, &user)
+	var loginUser LoginUser
+	err = json.Unmarshal(b, &loginUser)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	validate := validator.New()
-	err = validate.Struct(user)
+	err = validate.Struct(loginUser)
 
 	if err != nil {
 		errorRes := map[string]interface{}{
@@ -196,25 +195,21 @@ func (a *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	session, _ := sessions.Get(r, sessions.SESSION_STORE_NAME)
 
-	resUser := model.NewUser(string(crypto.GenerateRandomKey(32)), user.Username, "", user.Email, user.Password)
-
-	session.Values["userID"] = resUser.ID
-	session.Options = sessions.CookieOptions
-	sessions.Save(r, w, session)
-
 	var (
 		currentUser model.User
-		ok          bool
 	)
 
-	if currentUser, ok = database.Get(resUser.ID).(model.User); !ok {
+	user := model.NewUser("", "", "", loginUser.Email, loginUser.Password)
+	currentUser = user.FindByEmail()
+
+	if currentUser.Password != user.Password {
 		http.Error(w, "User not found", http.StatusBadRequest)
 		return
 	}
 
-	if currentUser.Password != resUser.Password {
-		http.Error(w, "User not found", http.StatusBadRequest)
-	}
+	session.Values["userID"] = currentUser.ID
+	session.Options = sessions.CookieOptions
+	sessions.Save(r, w, session)
 
 	res := loginResponse{
 		Message:  "Login Success",
