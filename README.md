@@ -61,6 +61,13 @@
   - `JWT`を使うことでステートレスなCSRF対策ができる(https://qiita.com/kaiinui/items/21ec7cc8a1130a1a103a)
   - CSRF対策として`Preflight Request`を使う方法もあるが、`CSRF Token`を発行していれば、Same Origin であることの検証は可能なので必要ない
 
+### Content-Type: application/json
+- JSONを返す WEB API の場合、`Content-Type: application/json`を設定しないことでXSSが発生してしまう
+- `Content-Type: application/json`はブラウザにJSON形式のデータを返すことを伝えるヘッダーだが、これを設定しないことで`Content-Type: text/html`が設定されてしまう
+- `Content-Type: text/html`が設定されると、JSONをHTMLとして返すことをブラウザーに伝えるため、HTMLとして読み込むことでXSSが発生する
+-  XSSを防ぐには`Content-Type: application/json`の設定が必要であるが、IEの一部のバージョンでは`Content-Type`を書き換えられる仕様になっている
+- 書き換えを防ぐために`X-Content-Type-Options`を設定する
+
 ### X-Frame-Options
 - クリックジャッキングなどの脆弱性対策として必要
 - クリックジャッキングは、攻撃者が作成した偽サイトに`iframe`を使ってTwitterなどの一般的なサイトを表示し、その一般的なサイトの投稿ボタンなどの上に罠サイトへのリンクや、攻撃用のプログラムを含めておき、実行させるというものである。
