@@ -29,7 +29,6 @@ func NewAuthHandler() *AuthHandler {
 	return &AuthHandler{}
 }
 
-// TODO: ここ実装したらテスト書く
 func (a *AuthHandler) Token(w http.ResponseWriter, r *http.Request) {
 	response.UseCSRFToken(w, r)
 	w.WriteHeader(http.StatusOK)
@@ -74,7 +73,7 @@ func (a *AuthHandler) AuthCallback(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(
 		w,
 		r,
-		// TODO: FrontEndのpathに変更する
+		// TODO: Change URL for the front end
 		fmt.Sprintf("/api/v1/users/%s", user.ID),
 		http.StatusTemporaryRedirect,
 	)
