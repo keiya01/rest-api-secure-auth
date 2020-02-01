@@ -235,3 +235,27 @@ func (a *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	response.SetHeader(w, r, http.StatusOK)
 	w.Write(resJSON)
 }
+
+func (a *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
+	if _, ok := auth.IsLogin("userID", r); !ok {
+		http.Error(w, "You Don't login", http.StatusBadRequest)
+		return
+	}
+
+	session, err := sessions.Get(r, sessions.SESSION_STORE_NAME)
+	if err != nil {
+		http.Error(w, "Please checking if you login", http.StatusBadRequest)
+		return
+	}
+
+	store := sessions.GetCookieStore()
+	store.MaxAge(-1)
+	err = store.Save(r, w, session)
+	if err != nil {
+		http.Error(w, "Failed logout", http.StatusInternalServerError)
+		return
+	}
+
+	response.SetHeader(w, r, http.StatusOK)
+	w.Write([]byte(`{"message": "Success Logout"}`))
+}
