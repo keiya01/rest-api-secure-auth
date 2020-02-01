@@ -8,7 +8,11 @@ import (
 )
 
 func checkSession(key string, r *http.Request) (string, bool) {
-	session, _ := sessions.Get(r, sessions.SESSION_STORE_NAME)
+	session, err := sessions.Get(r, sessions.SESSION_STORE_NAME)
+	if err != nil {
+		return "", false
+	}
+
 	v, ok := session.Values[key]
 	if !ok {
 		return "", false
