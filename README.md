@@ -43,9 +43,11 @@
   - `Access-Control-Allow-Origin` ... 許可するOriginを指定する(デフォルトは同じOriginが指定される)
   - `Access-Control-Allow-Methods` ... 許可する`HTTP Method`を指定する(`GET, POST, OPTIONS, HEAD`など)
   - `Access-Control-Allow-Headers` ... 許可するヘッダーを指定する。プリフライトリクエストのレスポンスで使用される。(`Content-Type, Authorization`など)
-  - `Access-Control-Allow-Credentials` ... 資格情報が必要なリクエストに対して、レスポンスを開示するかどうか(普通は何も指定しなくて良い) 
+  - `Access-Control-Allow-Credentials` ... 資格情報が必要なリクエストに対して、レスポンスを開示するかどうか(Cookieなどを含めるかどうか)
+  - `Access-Control-Expose-Headers` ... 通常は特定のHeaderしかブラウザでは参照できないため、公開したいHeaderを指定することで参照できるようになる
   - `Access-Control-Max-Age` ... プリフライトリクエストを何度も呼ぶのはオーバーヘッドになるので、このヘッダーに時間を指定することでキャッシュさせることができる
   - 上記の`CORS`をしっかり設定した上で`CSRF Token`をレスポンスする
+  - `gorilla/mux`では、`mux.Route.Method`に`OPTIONS`を指定することで`preflight request`を許可する
 
 ### Preflight Request
 - `Preflight Request`とは、主にJSからのPOSTなどの副作用を保つメソッドに対するリクエストを行う時に、安全なリクエストを送るために事前にリクエストされる通信である
