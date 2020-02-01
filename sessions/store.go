@@ -16,6 +16,7 @@ func NewStore() *sessions.CookieStore {
 
 func SetCookieStore(cookieStore *sessions.CookieStore) {
 	store = cookieStore
+	store.Options = CookieOptions
 }
 
 func Get(r *http.Request, name string) (*sessions.Session, error) {
@@ -24,4 +25,8 @@ func Get(r *http.Request, name string) (*sessions.Session, error) {
 
 func Save(r *http.Request, w http.ResponseWriter, session *sessions.Session) error {
 	return store.Save(r, w, session)
+}
+
+func GetCookieStore() *sessions.CookieStore {
+	return store
 }
