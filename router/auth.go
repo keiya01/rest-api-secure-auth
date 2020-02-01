@@ -8,10 +8,10 @@ import (
 func (r *Router) auth() {
 	authRouter := r.PathPrefix("/auth").Subrouter()
 	a := handler.NewAuthHandler()
-	authRouter.HandleFunc("/token", a.Token).Methods(http.MethodGet)
-	authRouter.HandleFunc("/logout", a.Logout).Methods(http.MethodPost)
-	authRouter.HandleFunc("/signup", a.AutoLogin(a.SignUp)).Methods(http.MethodPost)
-	authRouter.HandleFunc("/{provider}/callback", a.AuthCallback).Methods(http.MethodGet)
-	authRouter.HandleFunc("/{provider}", a.AutoLogin(a.ExternalLogin)).Methods(http.MethodGet)
-	authRouter.HandleFunc("/", a.AutoLogin(a.Login)).Methods(http.MethodPost)
+	authRouter.HandleFunc("/token", a.Token).Methods(http.MethodGet, http.MethodOptions)
+	authRouter.HandleFunc("/logout", a.Logout).Methods(http.MethodPost, http.MethodOptions)
+	authRouter.HandleFunc("/signup", a.AutoLogin(a.SignUp)).Methods(http.MethodPost, http.MethodOptions)
+	authRouter.HandleFunc("/{provider}/callback", a.AuthCallback).Methods(http.MethodGet, http.MethodOptions)
+	authRouter.HandleFunc("/{provider}", a.AutoLogin(a.ExternalLogin)).Methods(http.MethodGet, http.MethodOptions)
+	authRouter.HandleFunc("/", a.AutoLogin(a.Login)).Methods(http.MethodPost, http.MethodOptions)
 }
