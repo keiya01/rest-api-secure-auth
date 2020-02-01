@@ -35,18 +35,20 @@ func (a *AuthHandler) Token(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (a *AuthHandler) AutoLogin(w http.ResponseWriter, r *http.Request) bool {
-	if currentUser, ok := auth.IsLogin("userID", r); ok {
-		userJSON, _ := json.Marshal(loginResponse{
-			Message:  "Auto login success",
-			User:     model.NewUser(currentUser.ID, currentUser.Name, currentUser.Description, currentUser.Email, ""),
-			Provider: mux.Vars(r)["provider"],
-		})
-		response.SetHeader(w, r, http.StatusOK)
-		w.Write(userJSON)
-		return true
-	}
-	return false
+func (a *AuthHandler) AutoLogin(f func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if currentUser, ok := auth.IsLogin("userID", r); ok {
+			userJSON, _ := json.Marshal(loginResponse{
+				Message:  "Auto login success",
+				User:     model.NewUser(currentUser.ID, currentUser.Name, currentUser.Description, currentUser.Email, ""),
+				Provider: mux.Vars(r)["provider"],
+			})
+			response.SetHeader(w, r, http.StatusOK)
+			w.Write(userJSON)
+			return
+		}
+		f(w, r)
+	})
 }
 
 func (a *AuthHandler) AuthCallback(w http.ResponseWriter, r *http.Request) {
