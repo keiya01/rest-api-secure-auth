@@ -58,7 +58,10 @@ func (a *AuthHandler) AuthCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, _ := sessions.Get(r, sessions.SESSION_STORE_NAME)
+	session, err := sessions.Get(r, sessions.SESSION_STORE_NAME)
+	if err != nil {
+		sessions.SetCookieStore(sessions.NewStore())
+	}
 
 	user := model.NewUser(gothUser.UserID, gothUser.Name, gothUser.Description, "", "")
 
@@ -138,7 +141,10 @@ func (a *AuthHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, _ := sessions.Get(r, sessions.SESSION_STORE_NAME)
+	session, err := sessions.Get(r, sessions.SESSION_STORE_NAME)
+	if err != nil {
+		sessions.SetCookieStore(sessions.NewStore())
+	}
 
 	resUser := model.NewUser(string(crypto.GenerateRandomKey(32)), user.Username, "", user.Email, user.Password)
 
@@ -195,8 +201,6 @@ func (a *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, _ := sessions.Get(r, sessions.SESSION_STORE_NAME)
-
 	var (
 		currentUser model.User
 	)
@@ -207,6 +211,11 @@ func (a *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	if currentUser.Password != user.Password {
 		http.Error(w, "User not found", http.StatusBadRequest)
 		return
+	}
+
+	session, err := sessions.Get(r, sessions.SESSION_STORE_NAME)
+	if err != nil {
+		sessions.SetCookieStore(sessions.NewStore())
 	}
 
 	session.Values["userID"] = currentUser.ID
