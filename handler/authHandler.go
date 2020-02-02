@@ -53,7 +53,7 @@ func (a *AuthHandler) AutoLogin(f func(http.ResponseWriter, *http.Request)) func
 func (a *AuthHandler) AuthCallback(w http.ResponseWriter, r *http.Request) {
 	gothUser, err := gothic.CompleteUserAuth(w, r)
 	if err != nil {
-		http.Error(w, "Login failure", http.StatusInternalServerError)
+		response.Error(w, "Login failure", http.StatusInternalServerError)
 		return
 	}
 
@@ -81,7 +81,7 @@ func (a *AuthHandler) AuthCallback(w http.ResponseWriter, r *http.Request) {
 
 func (a *AuthHandler) ExternalLogin(w http.ResponseWriter, r *http.Request) {
 	if _, err := gothic.GetProviderName(r); err != nil {
-		http.Error(w, "The request has Invalid parameter", http.StatusBadRequest)
+		response.Error(w, "The request has Invalid parameter", http.StatusBadRequest)
 		return
 	}
 
@@ -98,7 +98,7 @@ func (a *AuthHandler) ExternalLogin(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusForbidden)
+		response.Error(w, err.Error(), http.StatusForbidden)
 		return
 	}
 
@@ -116,14 +116,14 @@ func (a *AuthHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 	b, err := ioutil.ReadAll(r.Body)
 	defer r.Body.Close()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		response.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	var user SignUpUser
 	err = json.Unmarshal(b, &user)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		response.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -160,7 +160,7 @@ func (a *AuthHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 	}
 	resJSON, err := json.Marshal(res)
 	if err != nil {
-		http.Error(w, "Failed JSON encoding of response", http.StatusInternalServerError)
+		response.Error(w, "Failed JSON encoding of response", http.StatusInternalServerError)
 		return
 	}
 	response.SetHeader(w, r, http.StatusOK)
@@ -176,14 +176,14 @@ func (a *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	b, err := ioutil.ReadAll(r.Body)
 	defer r.Body.Close()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		response.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	var loginUser LoginUser
 	err = json.Unmarshal(b, &loginUser)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		response.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -208,7 +208,7 @@ func (a *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	currentUser = user.FindByEmail()
 
 	if currentUser.Password != user.Password {
-		http.Error(w, "User not found", http.StatusBadRequest)
+		response.Error(w, "User not found", http.StatusBadRequest)
 		return
 	}
 
@@ -228,7 +228,7 @@ func (a *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 	resJSON, err := json.Marshal(res)
 	if err != nil {
-		http.Error(w, "Failed JSON encoding of response", http.StatusInternalServerError)
+		response.Error(w, "Failed JSON encoding of response", http.StatusInternalServerError)
 		return
 	}
 	response.SetHeader(w, r, http.StatusOK)
@@ -237,13 +237,13 @@ func (a *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 func (a *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	if _, ok := auth.IsLogin("userID", r); !ok {
-		http.Error(w, "You Don't login", http.StatusBadRequest)
+		response.Error(w, "You Don't login", http.StatusBadRequest)
 		return
 	}
 
 	session, err := sessions.Get(r, sessions.SESSION_STORE_NAME)
 	if err != nil {
-		http.Error(w, "Please checking if you login", http.StatusBadRequest)
+		response.Error(w, "Please checking if you login", http.StatusBadRequest)
 		return
 	}
 
@@ -251,7 +251,7 @@ func (a *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	store.MaxAge(-1)
 	err = store.Save(r, w, session)
 	if err != nil {
-		http.Error(w, "Failed logout", http.StatusInternalServerError)
+		response.Error(w, "Failed logout", http.StatusInternalServerError)
 		return
 	}
 
