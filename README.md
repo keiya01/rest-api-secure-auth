@@ -27,11 +27,11 @@
 - [x] 予測可能な情報をSessionIDに指定してはいけない
   - IDや日時など推測可能な値をSessionIDに指定すると、簡単に推測されて不正に情報をとられ、ログインなどの処理が可能になる
   - また推測可能な値をハッシュ化して指定することもよくない(時間をかければ推測される可能性があるため)
-  - そのためSessionIDの生成には、言語が指定指定しているプログラムやフレームワークなどの機能を使うと良い
+  - そのためSessionIDの生成には、言語が指定しているプログラムやフレームワークなどの機能を使うと良い
   - Goでは`gorilla/sessions`を使うと楽
  - [x] SessionIDの固定化攻撃を防ぐ
-  - SessionIDの固定化攻撃とは攻撃者が被害者に対して、SessionIDをなんらの方法で指定することにより、指定されたSessionIDで被害者がログインすると、攻撃者は指定したSessionIDにより、ログイン状態となる脆弱性である。
-  - また、ログインしていなくても入力した情報をSessionに逐一保存している場合、固定化攻撃によりSessionIDを指定されると、そのSessionに情報が蓄積されることで攻撃者に情報が抜き取られる可能性がある
+  - SessionIDの固定化攻撃とは攻撃者が被害者に対して、SessionIDをなんらかの方法で指定することにより、指定されたSessionIDで被害者がログインすると、攻撃者は指定したSessionIDにより、ログイン状態となる脆弱性である。
+  - また、ログインしていなくてもユーザーが入力した情報をSessionに逐一保存している場合、固定化攻撃によりSessionIDを指定されると、そのSessionに情報が蓄積されることで攻撃者に情報が抜き取られる可能性がある
   - 多くの場合は心配ないが、セッションアダプションというセッションを外部から指定できるような機能を持っている言語(PHPなど)で起きやすい。しかし、基本的にこれらの機能はデフォルトでfalseになっているはずなので心配はいらないはずである。
   - Cookie に SessionID を保存する(URLに保存しない)
   - 認証成功後に SessionID を変更する(変更できない場合はTokenによりSessionIDの認証を行う)
@@ -53,16 +53,17 @@
 ### Preflight Request
 - `Preflight Request`とは、主にJSからのPOSTなどの副作用を保つメソッドに対するリクエストを行う時に、安全なリクエストを送るために事前にリクエストされる通信である
 - `Preflight Request`によって`Access-Control-*`のHeader情報が検証されることで安全なリクエストを行うことができる
+- `Preflight Request`は`OPTIONS`メソッドでリクエストされるので、`OPTIONS`で処理するように指定する
 
 ### CSRF
 - [x] `CSRF`対策をする
   - [gorilla/csrf](https://github.com/gorilla/csrf#javascript-applications)を使うと楽
   - CSRFの必要性([これで完璧！今さら振り返る CSRF 対策と同一オリジンポリシーの基礎](https://qiita.com/mpyw/items/0595f07736cfa5b1f50c), [gorilla/csrf で安全なWebフォームを作る](http://matope.hatenablog.com/entry/2019/06/05/144435))
-  - cookieに CSRF Token を保存しておき、Client に Response する
-  - Client では受け取った Token を Request に含めて送信する
+  - `gorilla/csrf`では`Double Submit Cookie`という方式を採用している
+  - `Double Submit Cookie`では Token を cookie と Header でレスポンスを返し、Client では cookie と Header に Token を含めてリクエストして、cookie と Header に含まれる Token と比較して、どちらも同じ Token なら許可するというものである
+  - `Double Submit Cookie`では cookie が変更された場合に機能しないという脆弱性が見つかっていたが`gorilla/csrf`では、署名付き Token を cookie に含めることで解決している
   - `GET, OPTIONS, HEAD, TRACE`はCSRFの検証をする必要がないはず(データの変更を行うような処理を含まないため)
   - `JWT`を使うことでステートレスなCSRF対策ができる(https://qiita.com/kaiinui/items/21ec7cc8a1130a1a103a)
-  - CSRF対策として`Preflight Request`を使う方法もあるが、`CSRF Token`を発行していれば、Same Origin であることの検証は可能なので必要ない
 
 ### Content-Type: application/json
 - JSONを返す WEB API の場合、`Content-Type: application/json`を設定しないことでXSSが発生してしまう
