@@ -89,6 +89,15 @@
 - MIME Type が変更されないように強制するために付与する
 - https://developer.mozilla.org/ja/docs/Web/HTTP/Headers/X-Content-Type-Options
 
+## SameSite
+- `SameSite`属性は`Set-Cookie`に含まれる設定
+- `SameSite`には`Strict`・`Lax`・`None`がある
+- `Strict` ... 異なるDomainのサイトに対してはCookieを付与しない(この設定が最も堅牢)
+- `Lax` ... Get Method以外のリクエストにはCookieを含めない(Chrome80では何も指定しない場合にはこの値が設定される)
+- `None` ... どのようなリクエストであっても、Cookieを含める(Chrome79以前ではデフォルト、Chrome80ではSecure属性をつけなければLaxになる)
+- 参考: https://qiita.com/ahera/items/0c8276da6b0bed2b580c
+- 参考: https://blog.jxck.io/entries/2018-10-26/same-site-cookie.html
+
 ### その他
 - [x] SQL Injection
 - [x] Passwordなどの見られてはいけない重要な情報を暗号化してからDBに保存する
